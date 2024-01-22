@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1030060385338",
+    "project_id": "hifz-android",
+    "storage_bucket": "hifz-android.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1030060385338:android:86d2925c29381311770103",
+        "android_client_info": {
+          "package_name": "com.diaryforhifz.hifz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1030060385338-b23k5hbk3fg5jrvnoq61kjtt451jliup.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBDDyOWvO-e47C9igCRgvUg4Om8WuTH-Gc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1030060385338-b23k5hbk3fg5jrvnoq61kjtt451jliup.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
