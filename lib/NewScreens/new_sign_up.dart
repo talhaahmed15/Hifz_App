@@ -3,7 +3,6 @@ import 'package:hafiz_diary/NewScreens/new_login.dart';
 import 'package:hafiz_diary/services/auth_services.dart';
 import '../constants.dart';
 import '../widget/TextFormField.dart';
-import '../widget/app_text.dart';
 import '../widget/common_button.dart';
 
 class NewSignUp extends StatefulWidget {

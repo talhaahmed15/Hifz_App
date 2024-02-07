@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -346,7 +345,6 @@ class PdfGenerator {
         String downloadURL = await storageRef.getDownloadURL();
 
 // Print success message
-        print('PDF successfully generated and uploaded to Firebase Storage');
 
 // Download PDF from Firebase Storage
         final Directory? downloadDir =
@@ -357,14 +355,9 @@ class PdfGenerator {
         await storage.refFromURL(downloadURL).writeToFile(downloadedFile);
 
         OpenFile.open(downloadedFile.path);
-
-        print('PDF downloaded to: ${downloadedFile.path}');
-      } else {
-        print('User not found');
-      }
+      } else {}
     } catch (error) {
       // Print error message
-      print('Error generating, saving, or uploading PDF: $error');
     }
   }
 }

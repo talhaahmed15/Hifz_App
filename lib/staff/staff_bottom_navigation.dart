@@ -1,14 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:hafiz_diary/admin/admin_home.dart';
 import 'package:hafiz_diary/constants.dart';
 import 'package:hafiz_diary/notes/notes_screen.dart';
 import 'package:hafiz_diary/profile/profile_screen.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
 import 'package:hafiz_diary/widget/app_text.dart';
 import 'package:hafiz_diary/widget/common_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'staff_home.dart';
 
@@ -48,7 +46,7 @@ class _StaffBottomNavigationState extends State<StaffBottomNavigation> {
     setState(() {
       currectUserId = FirebaseAuth.instance.currentUser!.uid;
       madrisaName = snapshot['madrasah_name'];
-      print("Current User id is**************** " + currectUserId.toString());
+      print("Current User id is**************** $currectUserId");
     });
   }
 
@@ -67,40 +65,52 @@ class _StaffBottomNavigationState extends State<StaffBottomNavigation> {
   @override
   Widget build(BuildContext context) {
     return widget.isApproved
-        ? Scaffold(
-            floatingActionButton: _selectedIndex == 0
-                ? FloatingActionButton(
-                    backgroundColor: primaryColor,
-                    onPressed: () {
-                      _createClass();
-                    },
-                    child: const Icon(
-                      Icons.add,
-                      color: Colors.white,
-                    ),
-                  )
-                : const SizedBox(),
-            body: Center(
-              child: _widgetOptions.elementAt(_selectedIndex),
-            ),
-            bottomNavigationBar: BottomNavigationBar(
-              items: const <BottomNavigationBarItem>[
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home),
-                  label: '',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.list_alt),
-                  label: '',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person),
-                  label: '',
-                ),
-              ],
-              currentIndex: _selectedIndex,
-              selectedItemColor: primaryColor,
-              onTap: _onItemTapped,
+        ? WillPopScope(
+            onWillPop: () async {
+              // Handle back button press
+              if (_selectedIndex != 0) {
+                setState(() {
+                  _selectedIndex = 0;
+                });
+                return false; // Cancel back button press
+              }
+              return true; // Allow back button press (exit the app)
+            },
+            child: Scaffold(
+              floatingActionButton: _selectedIndex == 0
+                  ? FloatingActionButton(
+                      backgroundColor: primaryColor,
+                      onPressed: () {
+                        _createClass();
+                      },
+                      child: const Icon(
+                        Icons.add,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const SizedBox(),
+              body: Center(
+                child: _widgetOptions.elementAt(_selectedIndex),
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                items: const <BottomNavigationBarItem>[
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.home),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.list_alt),
+                    label: '',
+                  ),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.person),
+                    label: '',
+                  ),
+                ],
+                currentIndex: _selectedIndex,
+                selectedItemColor: primaryColor,
+                onTap: _onItemTapped,
+              ),
             ),
           )
         : const Scaffold(

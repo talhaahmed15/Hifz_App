@@ -1,24 +1,11 @@
-import 'dart:io';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:hafiz_diary/parents/attendance_generator.dart';
 import 'package:hafiz_diary/parents/parents_application.dart';
 import 'package:hafiz_diary/parents/parents_fee.dart';
-import 'package:hafiz_diary/widget/TextFormField.dart';
 import 'package:hafiz_diary/widget/common_button.dart';
-import 'package:intl/intl.dart' as intl;
-import 'package:path_provider/path_provider.dart';
-import 'package:printing/printing.dart';
-import 'package:provider/provider.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:flutter/material.dart' as mt;
-import 'package:intl/intl.dart';
 
-import 'package:pdf/pdf.dart';
 import '../constants.dart';
 import '../widget/app_text.dart';
 

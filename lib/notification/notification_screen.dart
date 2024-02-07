@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:hafiz_diary/notification/applications.dart';
 import 'package:hafiz_diary/notification/new_para.dart';
 
@@ -174,17 +173,21 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       studentID: snapshot.data!.docs[index].id);
 
                                   if (length >= 39) {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                            content: AppText(
-                                      text: "Studied 40 Namaz",
-                                    )));
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              content: AppText(
+                                        text: "Studied 40 Namaz",
+                                      )));
+                                    }
                                   } else {
-                                    ScaffoldMessenger.of(context)
-                                        .showSnackBar(SnackBar(
-                                            content: AppText(
-                                      text: "Did not studied 40 Namaz",
-                                    )));
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(SnackBar(
+                                              content: AppText(
+                                        text: "Did not studied 40 Namaz",
+                                      )));
+                                    }
                                   }
                                 },
                                 child: Container(

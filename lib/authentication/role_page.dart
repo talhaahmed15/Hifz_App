@@ -1,8 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/NewScreens/new_login.dart';
-import 'package:hafiz_diary/widget/app_text.dart';
+
 import '../constants.dart';
 
 class RolePage extends StatefulWidget {

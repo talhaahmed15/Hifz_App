@@ -1,6 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/NewScreens/join.dart';
 import 'package:hafiz_diary/NewScreens/new_create_profile.dart';
@@ -13,12 +12,11 @@ import 'package:hafiz_diary/constants.dart';
 import 'package:hafiz_diary/notification/notification_screen.dart';
 import 'package:hafiz_diary/widget/app_text.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../widget/common_button.dart';
 
 class AdminHome extends StatefulWidget {
-  AdminHome({Key? key, required this.madrisaName}) : super(key: key);
+  const AdminHome({Key? key, required this.madrisaName}) : super(key: key);
 
-  String? madrisaName;
+  final String? madrisaName;
 
   @override
   State<AdminHome> createState() => _AdminHomeState();
@@ -26,6 +24,7 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   String? uId;
+  // ignore: non_constant_identifier_names
   String? madrasah_name;
 
   @override
@@ -114,10 +113,13 @@ class _AdminHomeState extends State<AdminHome> {
                   prefs.remove("currentUserId");
 
                   FirebaseAuth.instance.signOut();
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: ((context) {
-                    return const Join();
-                  })));
+
+                  if (mounted) {
+                    Navigator.pushReplacement(context,
+                        MaterialPageRoute(builder: ((context) {
+                      return const Join();
+                    })));
+                  }
                   //Navigator.pop(context);
                 },
                 child: const Padding(
@@ -154,7 +156,7 @@ class _AdminHomeState extends State<AdminHome> {
                         onPressed: () {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return const NewProfile();
+                            return  NewProfile(madrisaName: madrasah_name!);
                           }));
                         },
                         child: lang == "en"

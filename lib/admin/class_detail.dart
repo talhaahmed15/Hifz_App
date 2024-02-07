@@ -4,8 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:hafiz_diary/staff/staff_student_attendance.dart';
 
 import '../constants.dart';
-import '../widget/app_text.dart';
-// import '../widget/app_text.dart';
 
 class ClassDetail extends StatefulWidget {
   final String classCode;

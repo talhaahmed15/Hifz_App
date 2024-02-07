@@ -10,12 +10,12 @@ import 'package:hafiz_diary/profile/profile_screen.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
 import 'package:hafiz_diary/widget/app_text.dart';
 import 'package:hafiz_diary/widget/common_button.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AdminHomeNavigation extends StatefulWidget {
-  AdminHomeNavigation({Key? key, required this.madrisaName}) : super(key: key);
+  const AdminHomeNavigation({Key? key, required this.madrisaName})
+      : super(key: key);
 
-  String? madrisaName;
+  final String? madrisaName;
 
   @override
   State<AdminHomeNavigation> createState() => _AdminHomeNavigationState();
@@ -31,7 +31,6 @@ class _AdminHomeNavigationState extends State<AdminHomeNavigation> {
   getCurrentUserId() async {
     setState(() {
       currentUserId = FirebaseAuth.instance.currentUser!.uid;
-      print(currentUserId);
     });
   }
 
@@ -42,7 +41,6 @@ class _AdminHomeNavigationState extends State<AdminHomeNavigation> {
       classCodeController.text = Random().nextInt(100000).toString();
     });
 
-    // TODO: implement initState
     super.initState();
   }
 
@@ -63,45 +61,57 @@ class _AdminHomeNavigationState extends State<AdminHomeNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-              backgroundColor: primaryColor,
-              onPressed: () {
-                _createClass();
-              },
-              child: const Icon(
-                Icons.add,
-                color: Colors.white,
-              ),
-            )
-          : const SizedBox(),
-      body: Column(
-        mainAxisSize: MainAxisSize.max,
-        children: [
-          Expanded(
-            child: _widgetOptions.elementAt(_selectedIndex),
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.list_alt),
-            label: '',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: '',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: primaryColor,
-        onTap: _onItemTapped,
+    return WillPopScope(
+      onWillPop: () async {
+        // Handle back button press
+        if (_selectedIndex != 0) {
+          setState(() {
+            _selectedIndex = 0;
+          });
+          return false; // Cancel back button press
+        }
+        return true; // Allow back button press (exit the app),
+      },
+      child: Scaffold(
+        floatingActionButton: _selectedIndex == 0
+            ? FloatingActionButton(
+                backgroundColor: primaryColor,
+                onPressed: () {
+                  _createClass();
+                },
+                child: const Icon(
+                  Icons.add,
+                  color: Colors.white,
+                ),
+              )
+            : const SizedBox(),
+        body: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: _widgetOptions.elementAt(_selectedIndex),
+            ),
+          ],
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.list_alt),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: '',
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: primaryColor,
+          onTap: _onItemTapped,
+        ),
       ),
     );
   }

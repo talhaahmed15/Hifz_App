@@ -2,16 +2,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/NewScreens/join.dart';
-import 'package:hafiz_diary/authentication/role_page.dart';
 import 'package:hafiz_diary/staff/staff_class.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../admin/class_detail.dart';
-import '../admin/defaulter_students.dart';
-import '../admin/staff_detail.dart';
-import '../authentication/login_screen.dart';
 import '../constants.dart';
-import '../notification/notification_screen.dart';
 import '../widget/app_text.dart';
 
 class StaffHome extends StatefulWidget {
@@ -38,6 +32,7 @@ class _StaffHomeState extends State<StaffHome> {
     super.initState();
   }
 
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
         onWillPop: () async {
@@ -63,7 +58,7 @@ class _StaffHomeState extends State<StaffHome> {
                           children: [
                             Text(
                               snapshot.data!.get('name'),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -77,11 +72,11 @@ class _StaffHomeState extends State<StaffHome> {
                         );
                       } else if (snapshot.connectionState ==
                           ConnectionState.waiting) {
-                        return CircularProgressIndicator();
+                        return const CircularProgressIndicator();
                       } else if (snapshot.hasData && snapshot.data == null) {
-                        return Text('Null Data');
+                        return const Text('Null Data');
                       } else {
-                        return Text('Error');
+                        return const Text('Error');
                       }
                     }),
               ],
@@ -97,7 +92,7 @@ class _StaffHomeState extends State<StaffHome> {
                         (value) => Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => Join(),
+                            builder: (context) => const Join(),
                           ),
                         ),
                       );
@@ -219,7 +214,7 @@ class _StaffHomeState extends State<StaffHome> {
                                   );
                                 });
                           } else {
-                            return Center(
+                            return const Center(
                               child: CircularProgressIndicator(),
                             );
                           }

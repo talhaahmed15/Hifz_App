@@ -55,6 +55,7 @@ dependencies:
   google_fonts: ^4.0.4
   open_file:
   url_launcher: ^6.0.9
+  connectivity_plus: ^5.0.2
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +68,7 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
+  test: ^1.24.3
 flutter_icons:
   image_path: "assets/images/logob.png"
   android: true

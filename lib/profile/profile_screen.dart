@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:hafiz_diary/constants.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
 import 'package:hafiz_diary/widget/app_text.dart';
-import 'package:hafiz_diary/widget/common_button.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -123,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                       backgroundImage:
                                                           FileImage(_img!),
                                                     )
-                                                  : Container(
+                                                  : SizedBox(
                                                       width: 150,
                                                       height: 150,
                                                       child: Image.asset(
@@ -443,13 +442,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<bool> uploadImage() async {
     bool val = false;
-    final _firebaseStorage = FirebaseStorage.instance;
+    final firebaseStorage = FirebaseStorage.instance;
 
     // _firebaseStorage.
     if (_img != null) {
       //Upload to Firebase
 
-      var snapshot = await _firebaseStorage
+      var snapshot = await firebaseStorage
           .ref()
           .child('profileImages/${emailController.text}')
           .putFile(_img!)

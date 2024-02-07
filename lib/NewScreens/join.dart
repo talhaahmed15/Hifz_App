@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hafiz_diary/NewScreens/new_login.dart';
 import 'package:hafiz_diary/authentication/role_page.dart';
-import 'package:hafiz_diary/widget/common_button.dart';
 import '../constants.dart';
 import 'new_sign_up.dart';
 

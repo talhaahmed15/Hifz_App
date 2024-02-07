@@ -8,7 +8,6 @@ import 'package:hafiz_diary/widget/app_text.dart';
 import 'package:hafiz_diary/widget/common_button.dart';
 
 import '../constants.dart';
-import 'sign_up.dart';
 
 class LoginScreen extends StatefulWidget {
   final bool isAdmin;

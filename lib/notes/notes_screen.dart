@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
-import 'package:hafiz_diary/widget/common_button.dart';
 
 import '../constants.dart';
 import '../widget/app_text.dart';

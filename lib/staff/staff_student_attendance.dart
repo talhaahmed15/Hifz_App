@@ -3,17 +3,14 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:hafiz_diary/widget/TextFormField.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:printing/printing.dart';
 import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:pdf/pdf.dart';
-import '../admin/admin_home.dart';
 import '../constants.dart';
 import '../provider/provider_class.dart';
 import '../widget/app_text.dart';
-import '../widget/common_button.dart';
 import 'package:quran/quran.dart' as quran;
 
 class StaffStudentAttendance extends StatefulWidget {
@@ -127,12 +124,10 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
       if (data.containsKey('Sabaq')) {
         setState(() {
           selectedPara = data['Sabaq']['para'];
-          print(selectedPara);
         });
       } else {
         setState(() {
           selectedPara = paraNames.first;
-          print(selectedPara);
         });
       }
     }
@@ -169,18 +164,20 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
         int index = paraNames.indexOf(lastDocument['Manzil']['para']);
         selectedManzilPara = paraNames[index + 1];
       } else {
-        lastDocument = querySnapshot.docs[1];
+        lastDocument = querySnapshot.docs[0];
         data = lastDocument.data() as Map<String, dynamic>;
+
         if (data.containsKey('Manzil')) {
           int index = paraNames.indexOf(lastDocument['Manzil']['para']);
           selectedManzilPara = paraNames[index + 1];
+        } else {
+          selectedManzilPara = paraNames[0];
         }
       }
     } else {
       // No Documents
       // First Time Attendance - done
-      selectedManzilPara = manzilParaList![0];
-      print('No attendance documents found.');
+      selectedManzilPara = paraNames[0];
     }
   }
 
@@ -206,21 +203,18 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
           snapshot2['Sabaq']['fromAyah'] != null) {
         setState(() {
           sabaqattendance = true;
-          print("marked 1");
         });
       }
 
       if (snapshot.data()!.containsKey("Sabki")) {
         setState(() {
           sabkiattendance = true;
-          print("marked 2");
         });
       }
 
       if (snapshot.data()!.containsKey("Manzil")) {
         setState(() {
           manzilattendance = true;
-          print("marked 3");
         });
       }
     }
@@ -233,7 +227,6 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
   void _fetchFeeStatus() async {
     User? user = _auth.currentUser;
     if (user != null) {
-      print(user);
       DocumentSnapshot snapshot =
           await _firestore.collection('users').doc(widget.studentID).get();
       setState(() {
@@ -245,7 +238,6 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
   void deleteUser() async {
     try {
       _firestore.collection('users').doc(widget.studentID).delete();
-      print('User with ID ${widget.studentID} has been deleted.');
       final classesCollection =
           FirebaseFirestore.instance.collection('classes');
 
@@ -257,15 +249,11 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
         await classReference.update({
           'students': FieldValue.arrayRemove([widget.studentID]),
         });
-
-        print('Removed student ${widget.studentID} from class ${doc.id}');
       }
 
       // Navigator.push(
       //     context, MaterialPageRoute(builder: (context) => const AdminHome()));
-    } catch (e) {
-      print('Error deleting user: $e');
-    }
+    } catch (e) {}
   }
 
   void _updateFeeStatus(bool status) async {
@@ -458,6 +446,44 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                                               ],
                                             ),
                                           ],
+                                        ),
+                                        SizedBox(
+                                          height: defPadding,
+                                        ),
+                                        SizedBox(
+                                          width: 350,
+                                          height: 50,
+                                          child: ElevatedButton(
+                                            child: lang == "en"
+                                                ? const Text('Mark Attendance')
+                                                : const Text("حاضری لگائیں"),
+                                            onPressed: () {
+                                              FirebaseFirestore.instance
+                                                  .collection('users')
+                                                  .doc(widget.studentID)
+                                                  .collection('attendance')
+                                                  .doc(DateTime.now()
+                                                      .toString()
+                                                      .characters
+                                                      .take(10)
+                                                      .toString())
+                                                  .set({
+                                                "attendance": true
+                                              }, SetOptions(merge: true)).then(
+                                                      (value) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(const SnackBar(
+                                                        content: Text(
+                                                            'Attendance added/updated Successfully!')));
+                                              }).catchError((error) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(
+                                                        const SnackBar(
+                                                            content: Text(
+                                                                'Error!')));
+                                              });
+                                            },
+                                          ),
                                         ),
                                         SizedBox(
                                           height: defPadding,
@@ -867,108 +893,120 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
               future: FirebaseFirestore.instance
                   .collection('users')
                   .doc(widget.studentID)
-                  .collection('attendance')
-                  .doc(DateTime.now().toString().characters.take(10).toString())
                   .get(),
               builder: ((context, snapshot) {
                 if (snapshot.hasData &&
                     snapshot.connectionState == ConnectionState.done &&
                     snapshot.data!.exists) {
-                  selectedSabkiPara = snapshot.data!['Sabaq']['para'];
-                  selectedSabkiAyah = snapshot.data!['Sabaq']['toAyah'];
-                  selectedSabkiSurah = snapshot.data!['Sabaq']['toSurah'];
+                  Map<String, dynamic> sabqiData =
+                      snapshot.data!.data() as Map<String, dynamic>;
 
-                  return Column(
-                    children: [
-                      Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: defPadding / 2),
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(defPadding / 3),
-                              border: Border.all(color: Colors.grey)),
-                          child: DropdownButton(
-                            hint: Text(snapshot.data!['Sabaq']['para']),
-                            borderRadius: BorderRadius.circular(defPadding),
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            value: selectedManzilPara,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: const [],
-                            onChanged: (value) {},
-                          )),
-                      SizedBox(
-                        height: defPadding,
-                      ),
-                      Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: defPadding / 2),
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(defPadding / 3),
-                              border: Border.all(color: Colors.grey)),
-                          child: DropdownButton(
-                            hint: Text(snapshot.data!['Sabaq']['toSurah']),
-                            borderRadius: BorderRadius.circular(defPadding),
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            value: selectedManzilPara,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: const [],
-                            onChanged: (value) {},
-                          )),
-                      SizedBox(
-                        height: defPadding,
-                      ),
-                      Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: defPadding / 2),
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(defPadding / 3),
-                              border: Border.all(color: Colors.grey)),
-                          child: DropdownButton(
-                            hint: lang == "en"
-                                ? const Text(
-                                    "From Ayah: Start of Parah",
-                                  )
-                                : const Text(
-                                    "آیت: پارہ کا آغاز",
-                                  ),
-                            borderRadius: BorderRadius.circular(defPadding),
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            value: selectedManzilPara,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: const [],
-                            onChanged: (value) {},
-                          )),
-                      SizedBox(
-                        height: defPadding,
-                      ),
-                      Container(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: defPadding / 2),
-                          decoration: BoxDecoration(
-                              borderRadius:
-                                  BorderRadius.circular(defPadding / 3),
-                              border: Border.all(color: Colors.grey)),
-                          child: DropdownButton(
-                            hint: lang == "en"
-                                ? Text(
-                                    "To Ayah: ${snapshot.data!['Sabaq']['toAyah']}")
-                                : Text(
-                                    "آیت تک: ${snapshot.data!['Sabaq']['toAyah']}"),
-                            borderRadius: BorderRadius.circular(defPadding),
-                            isExpanded: true,
-                            underline: const SizedBox(),
-                            value: selectedManzilPara,
-                            icon: const Icon(Icons.keyboard_arrow_down),
-                            items: const [],
-                            onChanged: (value) {},
-                          )),
-                    ],
-                  );
+                  if (sabqiData.containsKey('selectedSabaq')) {
+                    selectedSabkiPara = snapshot.data!['selectedSabaq']['para'];
+                    selectedSabkiAyah =
+                        snapshot.data!['selectedSabaq']['toAyah'];
+                    selectedSabkiSurah =
+                        snapshot.data!['selectedSabaq']['toSurah'];
+
+                    return Column(
+                      children: [
+                        Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: defPadding / 2),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(defPadding / 3),
+                                border: Border.all(color: Colors.grey)),
+                            child: DropdownButton(
+                              hint:
+                                  Text(snapshot.data!['selectedSabaq']['para']),
+                              borderRadius: BorderRadius.circular(defPadding),
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              value: selectedManzilPara,
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: const [],
+                              onChanged: (value) {},
+                            )),
+                        SizedBox(
+                          height: defPadding,
+                        ),
+                        Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: defPadding / 2),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(defPadding / 3),
+                                border: Border.all(color: Colors.grey)),
+                            child: DropdownButton(
+                              hint: Text(
+                                  snapshot.data!['selectedSabaq']['toSurah']),
+                              borderRadius: BorderRadius.circular(defPadding),
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              value: selectedManzilPara,
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: const [],
+                              onChanged: (value) {},
+                            )),
+                        SizedBox(
+                          height: defPadding,
+                        ),
+                        Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: defPadding / 2),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(defPadding / 3),
+                                border: Border.all(color: Colors.grey)),
+                            child: DropdownButton(
+                              hint: lang == "en"
+                                  ? const Text(
+                                      "From Ayah: Start of Parah",
+                                    )
+                                  : const Text(
+                                      "آیت: پارہ کا آغاز",
+                                    ),
+                              borderRadius: BorderRadius.circular(defPadding),
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              value: selectedManzilPara,
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: const [],
+                              onChanged: (value) {},
+                            )),
+                        SizedBox(
+                          height: defPadding,
+                        ),
+                        Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: defPadding / 2),
+                            decoration: BoxDecoration(
+                                borderRadius:
+                                    BorderRadius.circular(defPadding / 3),
+                                border: Border.all(color: Colors.grey)),
+                            child: DropdownButton(
+                              hint: lang == "en"
+                                  ? Text(
+                                      "To Ayah: ${snapshot.data!['selectedSabaq']['toAyah']}")
+                                  : Text(
+                                      "آیت تک: ${snapshot.data!['selectedSabaq']['toAyah']}"),
+                              borderRadius: BorderRadius.circular(defPadding),
+                              isExpanded: true,
+                              underline: const SizedBox(),
+                              value: selectedManzilPara,
+                              icon: const Icon(Icons.keyboard_arrow_down),
+                              items: const [],
+                              onChanged: (value) {},
+                            )),
+                      ],
+                    );
+                  } else {
+                    return const Center(child: Text('Loading Data'));
+                  }
+                } else if (snapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
                 } else if (snapshot.hasData) {
                   return const Text('Please Update Sabaq First');
                 } else if (snapshot.hasError) {
@@ -1447,7 +1485,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
       'date': DateTime.now().toString().characters.take(10).toString(),
       "timestamp": DateTime.now(),
       'teacherID': FirebaseAuth.instance.currentUser!.uid,
-      'Attendance': "Present",
+      "attendance": true,
       "Manzil": {
         "para": selectedManzilPara,
       },
@@ -1477,7 +1515,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
       'date': DateTime.now().toString().characters.take(10).toString(),
       "timestamp": DateTime.now(),
       'teacherID': FirebaseAuth.instance.currentUser!.uid,
-      'Attendance': "Present",
+      'attendance': true,
       "Sabki": {
         "para": selectedPara,
         "Surah": selectedSabkiSurah,
@@ -1510,7 +1548,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
       'date': DateTime.now().toString().characters.take(10).toString(),
       "timestamp": DateTime.now(),
       'teacherID': FirebaseAuth.instance.currentUser!.uid,
-      'Attendance': "Present",
+      'attendance': true,
       "Sabaq": {
         "para": selectedPara,
         "fromSurah": selectedStartSurah,
@@ -1528,6 +1566,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
 
     FirebaseFirestore.instance.collection('users').doc(widget.studentID).set({
       "selectedSabaq": {
+        'para': selectedPara,
         "fromSurah": selectedStartSurah,
         "toSurah": selectedEndSurah,
         "fromAyah": selectedStartVerse,
@@ -1614,8 +1653,6 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
           child: pw.Text("Manzal",
               style: pw.TextStyle(fontWeight: pw.FontWeight.bold))),
     ]));
-    print("My Data is");
-    print(data);
 
     // Add data to the PDF content
     for (final item in data) {
@@ -1677,7 +1714,6 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
 
     final List<Map<String, dynamic>> data =
         snapshot.docs.map((doc) => doc.data() as Map<String, dynamic>).toList();
-    print(data);
 
     return data;
   }

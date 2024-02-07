@@ -5,9 +5,10 @@ import '../constants.dart';
 import '../widget/app_text.dart';
 
 class DefaulterStudents extends StatefulWidget {
-  DefaulterStudents({required this.madrasahName, Key? key}) : super(key: key);
+  const DefaulterStudents({required this.madrasahName, Key? key})
+      : super(key: key);
 
-  String madrasahName;
+  final String madrasahName;
 
   @override
   State<DefaulterStudents> createState() => _DefaulterStudentsState();
@@ -15,6 +16,140 @@ class DefaulterStudents extends StatefulWidget {
 
 class _DefaulterStudentsState extends State<DefaulterStudents> {
   bool isWidgetVisible = false;
+
+  Future<List> getData() async {
+    List docIds = [];
+    List finalList = [];
+
+    var firstCollection = await FirebaseFirestore.instance
+        .collection('users')
+        .where(
+          'madrasah_name',
+          isEqualTo: widget.madrasahName,
+        )
+        .where('type', isEqualTo: "2")
+        .get();
+
+    for (int i = 0; i < firstCollection.docs.length; i++) {
+      docIds.add(firstCollection.docs[i].id);
+    }
+
+    List secondList = [];
+
+    for (int i = 0; i < docIds.length; i++) {
+      DocumentSnapshot secondCollection = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(docIds[i])
+          .collection('attendance')
+          .doc(DateTime.now().toString().characters.take(10).toString())
+          .get();
+
+      if (secondCollection.data() != null) {
+        final value = secondCollection.data();
+        print(value);
+      } else {
+        finalList.add({
+          'id': docIds[i],
+          'name': firstCollection.docs[i].get('name'),
+          'img_url': firstCollection.docs[i].get('img_url'),
+        });
+      }
+    }
+
+    return finalList;
+  }
+
+  Widget buildSection(
+      {required String title,
+      required List<DocumentSnapshot> data,
+      required String key}) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            lang == 'en'
+                ? Text(
+                    title,
+                    style: TextStyle(
+                      color: primaryColor,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  )
+                : Directionality(
+                    textDirection: TextDirection.rtl,
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        color: primaryColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+          ],
+        ),
+        SizedBox(
+          height: defPadding / 2,
+        ),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            itemCount: data.length,
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              return FutureBuilder(
+                future: FirebaseFirestore.instance
+                    .collection("users")
+                    .doc(data[index].id)
+                    .collection('attendance')
+                    .doc(DateTime.now()
+                        .toString()
+                        .characters
+                        .take(10)
+                        .toString()) // Replace with the actual document ID for each user
+                    .get(),
+                builder: (context, attendanceSnapshot) {
+                  if (attendanceSnapshot.hasData) {
+                    Map<String, dynamic>? attendanceData =
+                        attendanceSnapshot.data?.data();
+
+                    bool hasKey = attendanceData?.containsKey(key) ?? false;
+                    if (!hasKey) {
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Column(
+                          children: [
+                            data[index].get("img_url").toString().isEmpty
+                                ? Image.asset(
+                                    "assets/images/profile.png",
+                                    height: 70,
+                                    width: 70,
+                                  )
+                                : Image.network(
+                                    data[index].get("img_url"),
+                                    height: 70,
+                                    width: 70,
+                                  ),
+                            Text(data[index].get("name")),
+                          ],
+                        ),
+                      );
+                    }
+                  }
+                  return const SizedBox(); // Return an empty SizedBox if the key is present or data is not available
+                },
+              );
+            },
+          ),
+        ),
+        SizedBox(
+          height: defPadding / 2,
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,269 +199,56 @@ class _DefaulterStudentsState extends State<DefaulterStudents> {
                     ),
                     child: Text(
                       isWidgetVisible ? "Hide Other" : "Show Other",
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ),
                 Visibility(
-                    visible: isWidgetVisible,
-                    maintainState: true,
-                    child: FutureBuilder(
-                        future: FirebaseFirestore.instance
-                            .collection("attendance")
-                            .where("Attendance", isEqualTo: "present")
-                            .where("date",
-                                isEqualTo: DateTime.now()
-                                    .toString()
-                                    .characters
-                                    .take(10)
-                                    .toString())
-                            .get(),
-                        builder: (context, snapshot) {
-                          if (snapshot.hasData) {
-                            return Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    lang == 'en'
-                                        ? Text(
-                                            'Sabaq',
-                                            style: TextStyle(
-                                                color: primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          )
-                                        : Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: Text(
-                                              'سبق ',
-                                              style: TextStyle(
-                                                  color: primaryColor,
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 18),
-                                            ),
-                                          )
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: defPadding / 2,
-                                ),
-                                SizedBox(
-                                  height: 120,
-                                  child: ListView.builder(
-                                      itemCount: snapshot.data!.docs
-                                          .where((snap) =>
-                                              snap.get("Sabaq")['para'] == '')
-                                          .length,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        if (snapshot.data!.docs[index]
-                                            .get("Sabaq")['para']
-                                            .toString()
-                                            .isEmpty) {
-                                          return FutureBuilder(
-                                              future: FirebaseFirestore.instance
-                                                  .collection("users")
-                                                  .doc(snapshot
-                                                      .data!.docs[index]
-                                                      .get("studentId"))
-                                                  .get(),
-                                              builder: (context, futurSnap) {
-                                                if (snapshot.hasData) {
-                                                  return Column(
-                                                    children: [
-                                                      futurSnap.data!
-                                                              .get("img_url")
-                                                              .toString()
-                                                              .isEmpty
-                                                          ? Image.asset(
-                                                              "assets/images/profile.png",
-                                                              height: 70,
-                                                              width: 70,
-                                                            )
-                                                          : Image.network(
-                                                              futurSnap.data!
-                                                                  .get(
-                                                                      "img_url"),
-                                                              height: 70,
-                                                              width: 70,
-                                                            ),
-                                                      Text(futurSnap.data!
-                                                          .get("name"))
-                                                    ],
-                                                  );
-                                                } else {
-                                                  return CircularProgressIndicator();
-                                                }
-                                              });
-                                        }
-                                        return null;
-                                      }),
-                                ),
-                                SizedBox(
-                                  height: defPadding / 2,
-                                ),
-                                Row(
-                                  children: [
-                                    lang == "en"
-                                        ? Text(
-                                            "Sabqi",
-                                            style: TextStyle(
-                                                color: primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          )
-                                        : Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: Text(
-                                              "سبقی",
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: primaryColor,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: defPadding / 2,
-                                ),
-                                SizedBox(
-                                  height: 120,
-                                  child: ListView.builder(
-                                      itemCount: snapshot.data!.docs
-                                          .where((snap) =>
-                                              snap.get("Sabqi") == false)
-                                          .length,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        if (!snapshot.data!.docs[index]
-                                            .get("Sabqi")) {
-                                          return FutureBuilder(
-                                              future: FirebaseFirestore.instance
-                                                  .collection("users")
-                                                  .doc(snapshot
-                                                      .data!.docs[index]
-                                                      .get("studentId"))
-                                                  .get(),
-                                              builder: (context, futurSnap) {
-                                                if (snapshot.hasData) {
-                                                  return Column(
-                                                    children: [
-                                                      futurSnap.data!
-                                                              .get("img_url")
-                                                              .toString()
-                                                              .isEmpty
-                                                          ? Image.asset(
-                                                              "assets/images/profile.png",
-                                                              height: 70,
-                                                              width: 70,
-                                                            )
-                                                          : Image.network(
-                                                              futurSnap.data!
-                                                                  .get(
-                                                                      "img_url"),
-                                                              height: 70,
-                                                              width: 70,
-                                                            ),
-                                                      Text(futurSnap.data!
-                                                          .get("name"))
-                                                    ],
-                                                  );
-                                                } else {
-                                                  return CircularProgressIndicator();
-                                                }
-                                              });
-                                        }
-                                        return null;
-                                      }),
-                                ),
-                                SizedBox(
-                                  height: defPadding / 2,
-                                ),
-                                Row(
-                                  children: [
-                                    lang == "en"
-                                        ? Text(
-                                            "Manzil",
-                                            style: TextStyle(
-                                                color: primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 18),
-                                          )
-                                        : Directionality(
-                                            textDirection: TextDirection.rtl,
-                                            child: Text(
-                                              "منزل",
-                                              style: TextStyle(
-                                                  fontSize: 18,
-                                                  color: primaryColor,
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: defPadding / 2,
-                                ),
-                                SizedBox(
-                                  height: 120,
-                                  child: ListView.builder(
-                                      itemCount: snapshot.data!.docs
-                                          .where((snap) =>
-                                              snap.get("Manzil") == false)
-                                          .length,
-                                      scrollDirection: Axis.horizontal,
-                                      itemBuilder: (context, index) {
-                                        if (!snapshot.data!.docs[index]
-                                            .get("Manzil")) {
-                                          return FutureBuilder(
-                                              future: FirebaseFirestore.instance
-                                                  .collection("users")
-                                                  .doc(snapshot
-                                                      .data!.docs[index]
-                                                      .get("studentId"))
-                                                  .get(),
-                                              builder: (context, futurSnap) {
-                                                if (snapshot.hasData) {
-                                                  return Column(
-                                                    children: [
-                                                      futurSnap.data!
-                                                              .get("img_url")
-                                                              .toString()
-                                                              .isEmpty
-                                                          ? Image.asset(
-                                                              "assets/images/profile.png",
-                                                              height: 70,
-                                                              width: 70,
-                                                            )
-                                                          : Image.network(
-                                                              futurSnap.data!
-                                                                  .get(
-                                                                      "img_url"),
-                                                              height: 70,
-                                                              width: 70,
-                                                            ),
-                                                      Text(futurSnap.data!
-                                                          .get("name"))
-                                                    ],
-                                                  );
-                                                } else {
-                                                  return CircularProgressIndicator();
-                                                }
-                                              });
-                                        }
-                                        return null;
-                                      }),
-                                )
-                              ],
-                            );
-                          } else {
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-                        })),
+                  visible: isWidgetVisible,
+                  maintainState: true,
+                  child: FutureBuilder(
+                    future: FirebaseFirestore.instance
+                        .collection("users")
+                        .where("madrasah_name", isEqualTo: widget.madrasahName)
+                        .where("type", isEqualTo: "2")
+                        .get(),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        return Column(
+                          children: [
+                            // Sabaq Section
+                            buildSection(
+                              title: lang == 'en' ? 'Sabaq' : 'سبق',
+                              data: snapshot.data!.docs,
+                              key: 'Sabaq',
+                            ),
+
+                            // Sabqi Section
+                            buildSection(
+                              title: lang == 'en' ? 'Sabqi' : 'سبقی',
+                              data: snapshot.data!.docs,
+                              key: 'Sabki',
+                            ),
+
+                            // Manzil Section
+                            buildSection(
+                              title: lang == 'en' ? 'Manzil' : 'منزل',
+                              data: snapshot.data!.docs,
+                              key: 'Manzil',
+                            ),
+                          ],
+                        );
+                      } else {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+                    },
+                  ),
+                ),
+
+// Helper function to build each section
+
                 SizedBox(
                   height: defPadding / 2,
                 ),
@@ -348,52 +270,50 @@ class _DefaulterStudentsState extends State<DefaulterStudents> {
                 SizedBox(
                   height: defPadding / 2,
                 ),
-                FutureBuilder(
-                  future: FirebaseFirestore.instance
-                      .collection("users")
-                      .where('madrasah_name', isEqualTo: widget.madrasahName)
-                      .get(),
-                  builder: (context, AsyncSnapshot<QuerySnapshot> snapshot) {
+                FutureBuilder<List>(
+                  future: getData(),
+                  builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      // Return a loading indicator or some placeholder
-                      return CircularProgressIndicator();
+                      return const CircularProgressIndicator();
                     } else if (snapshot.hasError) {
-                      // Handle error
                       return Text('Error: ${snapshot.error}');
-                    } else if (!snapshot.hasData ||
-                        snapshot.data!.docs.isEmpty) {
-                      // No data available
-                      return Text('No data available');
+                    } else if (snapshot.hasData && snapshot.data == null) {
+                      return const Text('No data available');
+                    } else if (snapshot.hasData) {
+                      final absentList = snapshot.data;
+                      if (absentList != null) {
+                        return SizedBox(
+                            height: 500,
+                            child: ListView.builder(
+                                itemCount: absentList.length,
+                                itemBuilder: ((context, index) {
+                                  return Container(
+                                    margin: const EdgeInsets.all(4),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        absentList[index]['img_url'] == ''
+                                            ? SizedBox(
+                                                height: 50,
+                                                child: Image.asset(
+                                                    "assets/images/profile.png"))
+                                            : SizedBox(
+                                                height: 50,
+                                                child: Image.network(
+                                                    absentList[index]
+                                                        ['img_url'])),
+                                        const SizedBox(width: 8),
+                                        Text(absentList[index]['name']),
+                                      ],
+                                    ),
+                                  );
+                                })));
+                      } else {
+                        return const Text("List is empty");
+                      }
                     } else {
-                      // Data is available
-                      return SizedBox(
-                        height: 120,
-                        child: ListView.builder(
-                          itemCount: snapshot.data!.docs.length,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (context, index) {
-                            // Access the document data
-                            var userData = snapshot.data!.docs[index].data()
-                                as Map<String, dynamic>;
-                            return Column(
-                              children: [
-                                userData.containsKey('image_url')
-                                    ? Image.network(
-                                        userData['image_url'],
-                                        height: 70,
-                                        width: 70,
-                                      )
-                                    : Image.asset(
-                                        "assets/images/profile.png",
-                                        height: 70,
-                                        width: 70,
-                                      ),
-                                Text(userData.toString()),
-                              ],
-                            );
-                          },
-                        ),
-                      );
+                      return const Text("data");
                     }
                   },
                 )

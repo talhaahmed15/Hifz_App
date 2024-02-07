@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/NewScreens/new_sign_up.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
-import 'package:hafiz_diary/widget/common_button.dart';
 import '../authentication/forgot_password.dart';
 import '../constants.dart';
 import '../services/auth_services.dart';

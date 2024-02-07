@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/parents/parents_bottom_navigation.dart';
 
-import '../admin/admin_home.dart';
 import '../constants.dart';
 import '../widget/TextFormField.dart';
 import '../widget/app_text.dart';
@@ -34,7 +33,7 @@ class _ParentsLoginState extends State<ParentsLogin> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => ParentsBottomNavigation()),
+                        builder: (context) => const ParentsBottomNavigation()),
                   );
                   print("Student Found");
                 } else {

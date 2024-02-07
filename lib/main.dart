@@ -63,7 +63,7 @@ class MyApp extends StatelessWidget {
       title: 'Hafiz Diary',
       theme: ThemeData(
         textTheme: TextTheme(
-          bodyText2: TextStyle(
+          bodyMedium: TextStyle(
             color: primaryColor, // Change this to the desired text color
             fontWeight:
                 FontWeight.bold, // Change this to the desired font weight
@@ -71,7 +71,7 @@ class MyApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            primary:
+            backgroundColor:
                 primaryColor, // Change this to the desired background color
           ),
         ),

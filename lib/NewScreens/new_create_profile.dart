@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
-import 'package:hafiz_diary/widget/common_button.dart';
 import '../constants.dart';
 import '../services/auth_services.dart';
-import '../widget/app_text.dart';
 
 class NewProfile extends StatefulWidget {
-  const NewProfile({Key? key}) : super(key: key);
+  NewProfile({required this.madrisaName, Key? key}) : super(key: key);
+
+  String madrisaName;
 
   @override
   State<NewProfile> createState() => _NewProfileState();
@@ -18,6 +18,8 @@ class _NewProfileState extends State<NewProfile> {
   TextEditingController phoneController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController madrisaController = TextEditingController();
+
+  // ignore: non_constant_identifier_names
   List<String> Role = [
     "Parent",
     'Teacher',
@@ -29,6 +31,7 @@ class _NewProfileState extends State<NewProfile> {
 
   @override
   Widget build(BuildContext context) {
+    madrisaController.text = widget.madrisaName;
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -52,7 +55,7 @@ class _NewProfileState extends State<NewProfile> {
                   ),
                   Text(
                     lang == "en" ? "Create Profile" : "پروفائل بنائیں",
-                    style: TextStyle(color: Colors.grey),
+                    style: const TextStyle(color: Colors.grey),
                   ),
                   SizedBox(
                     height: defPadding * 5,

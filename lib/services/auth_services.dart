@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hafiz_diary/NewScreens/join.dart';
 import 'package:hafiz_diary/admin/bottom_navigation.dart';
 import 'package:hafiz_diary/constants.dart';
 import 'package:hafiz_diary/parents/parents_login.dart';
