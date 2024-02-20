@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hafiz_diary/widget/TextFormField.dart';
 import '../constants.dart';
@@ -156,7 +158,7 @@ class _NewProfileState extends State<NewProfile> {
                     width: 350,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         if (formKey.currentState!.validate()) {
                           authServices.signup(
                               data: {
@@ -172,6 +174,18 @@ class _NewProfileState extends State<NewProfile> {
                               context: context,
                               email: emailController.text.trim(),
                               password: passwordController.text.trim());
+
+                          // await FirebaseAuth.instance
+                          //     .createUserWithEmailAndPassword(
+                          //         email: emailController.text,
+                          //         password: passwordController.text);
+
+                          // FirebaseAuth.instance.signOut().then(
+                          //       (value) {
+                          //         FirebaseAuth.instance.signInWithEmailAndPassword(email: email, password: password)
+                          //       },
+                          //     );
+                          // print(FirebaseAuth.instance.currentUser!.uid);
                         }
                       },
                       child: lang == "en"

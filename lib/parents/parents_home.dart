@@ -57,25 +57,21 @@ class _ParentsHomeState extends State<ParentsHome> {
           .get();
 
       if (snapshot.data() != null) {
-        print(snapshot.data()!.containsKey("Sabaq"));
         if (snapshot.data()!.containsKey("Sabaq")) {
           setState(() {
             sabaqattendance = true;
-            print("marked 1");
           });
         }
 
         if (snapshot.data()!.containsKey("Sabki")) {
           setState(() {
             sabkiattendance = true;
-            print("marked 2");
           });
         }
 
         if (snapshot.data()!.containsKey("Manzil")) {
           setState(() {
             manzilattendance = true;
-            print("marked 3");
           });
         }
       }
@@ -147,14 +143,18 @@ class _ParentsHomeState extends State<ParentsHome> {
                         await SharedPreferences.getInstance();
                     prefs.remove("currentUserId");
 
-                    FirebaseAuth.instance.signOut().then(
-                          (value) => Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const Join(),
-                            ),
-                          ),
-                        );
+                    // FirebaseAuth.instance.signOut().then(
+                    //       (value) => Navigator.pushReplacement(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //           builder: (context) => const Join(),
+                    //         ),
+                    //       ),
+                    //     );
+
+                    FirebaseAuth.instance
+                        .signOut()
+                        .then((value) => Navigator.pop(context));
                   },
                   child: const Padding(
                     padding: EdgeInsets.all(8.0),
@@ -611,8 +611,23 @@ class _ParentsHomeState extends State<ParentsHome> {
                                           .characters
                                           .take(10)
                                           .toString())
-                                      .set({"Namaz": providerClass.namaz},
-                                          SetOptions(merge: true));
+                                      .set({
+                                    "Namaz": providerClass.namaz,
+                                    'date': DateTime.now()
+                                        .toString()
+                                        .characters
+                                        .take(10)
+                                        .toString(),
+                                    "timestamp": DateTime.now(),
+                                  }, SetOptions(merge: true)).then((value) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Namaz Updated')));
+                                  }).catchError((error) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                            content: Text('Error!')));
+                                  });
                                 },
                                 color: primaryColor,
                                 textColor: Colors.white,
@@ -692,8 +707,8 @@ class _ParentsHomeState extends State<ParentsHome> {
           } else {
             return Center(
               child: Text(lang == "en"
-                  ? 'Sabqi Attendance Not Marked Yet!'
-                  : "سبکی حاضری ابھی تک نشان زد نہیں ہوئی"),
+                  ? 'No Attendance has been marked Yet!'
+                  : "ابھی تک کوئی حاضری نہیں لگائی گئی"),
             );
           }
         },
@@ -741,8 +756,8 @@ class _ParentsHomeState extends State<ParentsHome> {
           } else {
             return Center(
               child: Text(lang == "en"
-                  ? 'Manzil Attendance Not Marked Yet!'
-                  : "منزل کی حاضری ابھی تک نشان زد نہیں ہوئی"),
+                  ? 'No Attendance has been marked Yet!'
+                  : "ابھی تک کوئی حاضری نہیں لگائی گئی"),
             );
           }
         },
@@ -821,8 +836,8 @@ class _ParentsHomeState extends State<ParentsHome> {
           } else {
             return Center(
               child: Text(lang == "en"
-                  ? 'Sabaq Attendance Not Marked Yet!'
-                  : "سبق کی حاضری ابھی تک نشان زد نہیں ہوئی"),
+                  ? 'No Attendance has been Marked Yet!'
+                  : "ابھی تک کوئی حاضری نہیں لگائی گئی"),
             );
           }
         },

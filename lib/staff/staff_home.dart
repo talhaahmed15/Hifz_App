@@ -88,14 +88,18 @@ class _StaffHomeState extends State<StaffHome> {
                       await SharedPreferences.getInstance();
                   prefs.setString("currentUserId", "");
 
-                  FirebaseAuth.instance.signOut().then(
-                        (value) => Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Join(),
-                          ),
-                        ),
-                      );
+                  // FirebaseAuth.instance.signOut().then(
+                  //       (value) => Navigator.pushReplacement(
+                  //         context,
+                  //         MaterialPageRoute(
+                  //           builder: (context) => const Join(),
+                  //         ),
+                  //       ),
+                  //     );
+
+                  FirebaseAuth.instance
+                      .signOut()
+                      .then((value) => Navigator.pop(context));
                 },
                 child: const Padding(
                   padding: EdgeInsets.all(8.0),
@@ -194,17 +198,21 @@ class _StaffHomeState extends State<StaffHome> {
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
                                             children: [
-                                              AppText(
-                                                text: snapshot.data!.docs[index]
+                                              Text(
+                                                snapshot.data!.docs[index]
                                                     .get("class_name"),
-                                                clr: primaryColor,
-                                                fontWeight: FontWeight.bold,
-                                                size: 16,
+                                                style: TextStyle(
+                                                  color: primaryColor,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 16,
+                                                ),
                                               ),
-                                              AppText(
-                                                text: snapshot.data!.docs[index]
+                                              Text(
+                                                snapshot.data!.docs[index]
                                                     .get("class_desc"),
-                                                clr: Colors.grey,
+                                                style: const TextStyle(
+                                                  color: Colors.grey,
+                                                ),
                                               ),
                                             ],
                                           )

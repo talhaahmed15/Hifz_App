@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:hafiz_diary/NewScreens/join.dart';
 import 'package:hafiz_diary/admin/bottom_navigation.dart';
 import 'package:hafiz_diary/parents/parents_bottom_navigation.dart';
+import 'package:hafiz_diary/parents/parents_login.dart';
 import 'package:hafiz_diary/staff/staff_bottom_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (currentUser == null) {
       Timer(
-        const Duration(seconds: 5),
+        const Duration(seconds: 3),
         () => Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -29,11 +30,16 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
-      Timer(const Duration(seconds: 5), () async {
+      Timer(const Duration(seconds: 3), () async {
         DocumentSnapshot doc = await FirebaseFirestore.instance
             .collection("users")
             .doc(currentUser.uid)
             .get();
+
+        if (context.mounted) {
+          Navigator.push(
+              context, MaterialPageRoute(builder: (context) => const Join()));
+        }
 
         if (doc.data() != null) {
           String madrisaName = doc.get("madrasah_name");
@@ -41,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
           if (type == "0") {
             if (mounted) {
-              Navigator.pushReplacement(
+              Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
@@ -57,18 +63,27 @@ class _SplashScreenState extends State<SplashScreen> {
             }
 
             if (mounted) {
-              Navigator.pushReplacement(
+              Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => StaffBottomNavigation(
                           isApproved: isApproved, madrisaName: madrisaName)));
             }
           } else {
+            String approved = doc.get("remarks");
+            bool isApproved;
+            if (approved == "approved") {
+              isApproved = true;
+            } else {
+              isApproved = false;
+            }
             if (mounted) {
-              Navigator.pushReplacement(
+              Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => const ParentsBottomNavigation()));
+                      builder: (context) => ParentsLogin(
+                            isApproved: isApproved,
+                          )));
             }
           }
         }
@@ -78,9 +93,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   void initState() {
-    initializeApp();
-
+    // TODO: implement initState
     super.initState();
+    initializeApp();
   }
 
   @override

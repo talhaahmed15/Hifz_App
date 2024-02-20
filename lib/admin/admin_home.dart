@@ -92,7 +92,7 @@ class _AdminHomeState extends State<AdminHome> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const NotificationScreen()));
+                          builder: (context) =>  NotificationScreen(madrisaName: madrasah_name!,)));
                 },
                 child: const Padding(
                   padding: EdgeInsets.all(8.0),
@@ -114,13 +114,13 @@ class _AdminHomeState extends State<AdminHome> {
 
                   FirebaseAuth.instance.signOut();
 
-                  if (mounted) {
-                    Navigator.pushReplacement(context,
-                        MaterialPageRoute(builder: ((context) {
-                      return const Join();
-                    })));
-                  }
-                  //Navigator.pop(context);
+                  // if (mounted) {
+                  //   Navigator.pushReplacement(context,
+                  //       MaterialPageRoute(builder: ((context) {
+                  //     return const Join();
+                  //   })));
+                  // }
+                  Navigator.pop(context);
                 },
                 child: const Padding(
                   padding: EdgeInsets.all(8.0),
@@ -156,7 +156,7 @@ class _AdminHomeState extends State<AdminHome> {
                         onPressed: () {
                           Navigator.push(context,
                               MaterialPageRoute(builder: (context) {
-                            return  NewProfile(madrisaName: madrasah_name!);
+                            return NewProfile(madrisaName: madrasah_name!);
                           }));
                         },
                         child: lang == "en"
@@ -397,11 +397,12 @@ class _AdminHomeState extends State<AdminHome> {
                                                         .size
                                                         .width *
                                                     0.6,
-                                                child: AppText(
-                                                  text: snapshot
-                                                      .data!.docs[index]
+                                                child: Text(
+                                                  snapshot.data!.docs[index]
                                                       .get("class_desc"),
-                                                  clr: Colors.grey,
+                                                  style: const TextStyle(
+                                                    color: Colors.grey,
+                                                  ),
                                                   maxLines: 3,
                                                 ),
                                               ),

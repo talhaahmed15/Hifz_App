@@ -46,7 +46,6 @@ class _StaffBottomNavigationState extends State<StaffBottomNavigation> {
     setState(() {
       currectUserId = FirebaseAuth.instance.currentUser!.uid;
       madrisaName = snapshot['madrasah_name'];
-      print("Current User id is**************** $currectUserId");
     });
   }
 

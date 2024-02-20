@@ -166,7 +166,7 @@ class _AdminHomeNavigationState extends State<AdminHomeNavigation> {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: CommonButton(
-                text: "Create Class--------------",
+                text: "Create Class",
                 onTap: () {
                   if (_formKey.currentState!.validate()) {
                     FirebaseFirestore.instance.collection("classes").add({

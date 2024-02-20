@@ -7,7 +7,9 @@ import '../constants.dart';
 import '../widget/app_text.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({Key? key}) : super(key: key);
+  NotificationScreen({Key? key, required this.madrisaName}) : super(key: key);
+
+  String madrisaName;
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -158,7 +160,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 StreamBuilder(
                     stream: FirebaseFirestore.instance
                         .collection("users")
-                        .where("type", isEqualTo: 2)
+                        .where("type", isEqualTo: "2")
+                        .where("madrasah_name", isEqualTo: widget.madrisaName)
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
@@ -287,18 +290,49 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
     Timestamp startTimestamp = Timestamp.fromDate(startDate);
     Timestamp endTimestamp = Timestamp.fromDate(currentDate);
+
     final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
-        .collection('attendance')
-        .where("studentId",
-            isEqualTo: studentID) // Replace with your collection name
+        .collection("users")
+        .doc(studentID)
+        .collection("attendance")
         .where('timestamp', isGreaterThanOrEqualTo: startTimestamp)
         .where("timestamp", isLessThanOrEqualTo: endTimestamp)
         .get();
 
+    // final QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+    //     .collection('attendance')
+    //     .where("studentId",
+    //         isEqualTo: studentID) // Replace with your collection name
+    //     .where('timestamp', isGreaterThanOrEqualTo: startTimestamp)
+    //     .where("timestamp", isLessThanOrEqualTo: endTimestamp)
+    //     .get();
+
     // Filter the documents further to include only those with no false values
-    final List<DocumentSnapshot> filteredDocuments = querySnapshot.docs
-        .where((doc) => !(doc.get("Namaz") as List<dynamic>).contains(false))
-        .toList();
+    // final List<DocumentSnapshot> filteredDocuments = querySnapshot.docs
+    //     .where((doc) => !(doc.get("Namaz") as List<dynamic>).contains(false))
+    //     .toList();
+
+    final List<DocumentSnapshot> filteredDocuments =
+        querySnapshot.docs.where((doc) {
+      // Check if the document contains the "Namaz" field
+      final data = doc.data()
+          as Map<String, dynamic>?; // Cast data to Map<String, dynamic> or null
+      if (data == null || !data.containsKey("Namaz")) {
+        return false; // No Namaz field means all false
+      }
+
+      // Check if any of the Namaz values are missing or false
+      List<dynamic>? namazList = data["Namaz"];
+      if (namazList == null ||
+          namazList.length != 5 ||
+          namazList.contains(false)) {
+        return false;
+      }
+
+      return true; // All Namaz values are true
+    }).toList();
+
+    print(filteredDocuments.length);
 
     return filteredDocuments.length;
   }

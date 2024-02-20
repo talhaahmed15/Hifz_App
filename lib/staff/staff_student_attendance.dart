@@ -82,7 +82,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
   }
 
   void defaultValues() {
-    selectedPara = paraNames.first;
+    selectedPara ??= paraNames.first;
 
     data = quran.getSurahAndVersesFromJuz(paraNames.indexOf(selectedPara!) + 1);
     List keys = data!.keys.toList();
@@ -100,8 +100,10 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
     verseStart = data![keys[indexStart]];
     verseEnd = data![keys[indexEnd]];
 
-    selectedStartVerse = verseStart![0];
-    selectedLastVerse = verseEnd![0];
+    if (selectedStartVerse == null && selectedLastVerse == null) {
+      selectedStartVerse = verseStart![0];
+      selectedLastVerse = verseEnd![0];
+    }
 
     versePrintStart = List.generate(verseStart![1] - verseStart![0] + 1,
         (index) => verseStart![0]! + index);
@@ -114,21 +116,24 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
     DocumentSnapshot doc = await FirebaseFirestore.instance
         .collection('users')
         .doc(widget.studentID)
-        .collection('attendance')
-        .doc(DateTime.now().toString().substring(0, 10))
         .get();
 
     if (doc.data() != null) {
-      var data = doc.data() as Map<String, dynamic>;
+      var sabaqData = doc.data() as Map<String, dynamic>;
 
-      if (data.containsKey('Sabaq')) {
-        setState(() {
-          selectedPara = data['Sabaq']['para'];
-        });
+      if (sabaqData.containsKey('selectedSabaq')) {
+        selectedPara = sabaqData['selectedSabaq']['para'];
+        selectedStartSurah = sabaqData['selectedSabaq']['fromSurah'];
+        selectedEndSurah = sabaqData['selectedSabaq']['toSurah'];
+        selectedStartVerse = sabaqData['selectedSabaq']['fromAyah'];
+        selectedLastVerse = sabaqData['selectedSabaq']['toAyah'];
+
+
+        defaultValues();
+        setState(() {});
       } else {
-        setState(() {
-          selectedPara = paraNames.first;
-        });
+        defaultValues();
+        setState(() {});
       }
     }
   }
@@ -901,12 +906,12 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                   Map<String, dynamic> sabqiData =
                       snapshot.data!.data() as Map<String, dynamic>;
 
-                  if (sabqiData.containsKey('selectedSabaq')) {
-                    selectedSabkiPara = snapshot.data!['selectedSabaq']['para'];
+                  if (sabqiData.containsKey('selectedSabqi')) {
+                    selectedSabkiPara = snapshot.data!['selectedSabqi']['para'];
                     selectedSabkiAyah =
-                        snapshot.data!['selectedSabaq']['toAyah'];
+                        snapshot.data!['selectedSabqi']['toAyah'];
                     selectedSabkiSurah =
-                        snapshot.data!['selectedSabaq']['toSurah'];
+                        snapshot.data!['selectedSabqi']['toSurah'];
 
                     return Column(
                       children: [
@@ -919,11 +924,11 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                                 border: Border.all(color: Colors.grey)),
                             child: DropdownButton(
                               hint:
-                                  Text(snapshot.data!['selectedSabaq']['para']),
+                                  Text(snapshot.data!['selectedSabqi']['para']),
                               borderRadius: BorderRadius.circular(defPadding),
                               isExpanded: true,
                               underline: const SizedBox(),
-                              value: selectedManzilPara,
+                              value: selectedSabkiPara,
                               icon: const Icon(Icons.keyboard_arrow_down),
                               items: const [],
                               onChanged: (value) {},
@@ -940,11 +945,11 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                                 border: Border.all(color: Colors.grey)),
                             child: DropdownButton(
                               hint: Text(
-                                  snapshot.data!['selectedSabaq']['toSurah']),
+                                  snapshot.data!['selectedSabqi']['toSurah']),
                               borderRadius: BorderRadius.circular(defPadding),
                               isExpanded: true,
                               underline: const SizedBox(),
-                              value: selectedManzilPara,
+                              value: selectedSabkiPara,
                               icon: const Icon(Icons.keyboard_arrow_down),
                               items: const [],
                               onChanged: (value) {},
@@ -970,7 +975,7 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                               borderRadius: BorderRadius.circular(defPadding),
                               isExpanded: true,
                               underline: const SizedBox(),
-                              value: selectedManzilPara,
+                              value: selectedSabkiPara,
                               icon: const Icon(Icons.keyboard_arrow_down),
                               items: const [],
                               onChanged: (value) {},
@@ -988,21 +993,50 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                             child: DropdownButton(
                               hint: lang == "en"
                                   ? Text(
-                                      "To Ayah: ${snapshot.data!['selectedSabaq']['toAyah']}")
+                                      "To Ayah: ${snapshot.data!['selectedSabqi']['toAyah']}")
                                   : Text(
-                                      "آیت تک: ${snapshot.data!['selectedSabaq']['toAyah']}"),
+                                      "آیت تک: ${snapshot.data!['selectedSabqi']['toAyah']}"),
                               borderRadius: BorderRadius.circular(defPadding),
                               isExpanded: true,
                               underline: const SizedBox(),
-                              value: selectedManzilPara,
+                              value: selectedSabkiPara,
                               icon: const Icon(Icons.keyboard_arrow_down),
                               items: const [],
                               onChanged: (value) {},
                             )),
+                        SizedBox(
+                          height: defPadding,
+                        ),
+                        SizedBox(
+                          height: 50,
+                          width: double.infinity,
+                          child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  disabledBackgroundColor: Colors.grey,
+                                  disabledForegroundColor: Colors.white
+                                  // Set text color to white
+                                  ),
+                              onPressed: (selectedSabkiPara == null ||
+                                      selectedSabkiAyah == null ||
+                                      selectedSabkiSurah == null)
+                                  ? null
+                                  : () {
+                                      markSabkiAttendance();
+                                    },
+                              child: lang == 'en'
+                                  ? const Text(
+                                      'Save Sabki Attendance',
+                                    )
+                                  : const Text(
+                                      'سبکی حاضری لگائیں',
+                                    )),
+                        ),
                       ],
                     );
                   } else {
-                    return const Center(child: Text('Loading Data'));
+                    return const Center(
+                        child: Text('Please Update Sabaq First'));
                   }
                 } else if (snapshot.connectionState ==
                     ConnectionState.waiting) {
@@ -1015,27 +1049,6 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
                   return const Center(child: CircularProgressIndicator());
                 }
               })),
-          SizedBox(
-            height: defPadding,
-          ),
-          SizedBox(
-            height: 50,
-            child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                  // Set text color to white
-                ),
-                onPressed: () {
-                  markSabkiAttendance();
-                },
-                child: lang == 'en'
-                    ? const Text(
-                        'Save Sabki Attendance',
-                      )
-                    : const Text(
-                        'سبکی حاضری لگائیں',
-                      )),
-          ),
         ],
       )
     ];
@@ -1082,9 +1095,10 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
       ),
       SizedBox(
         height: 50,
+        width: double.infinity,
         child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
+              backgroundColor: primaryColor,
               // Set text color to white
             ),
             onPressed: () {
@@ -1099,378 +1113,327 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
 
   List<Widget> get _sabaq {
     return [
-      FutureBuilder(
-          future: FirebaseFirestore.instance
-              .collection('users')
-              .doc(widget.studentID)
-              .get(),
-          builder: ((context, snapshot) {
-            if (snapshot.hasData && snapshot.data != null) {
-              if (selectedPara == null) {
-                Map<String, dynamic> sabaqData =
-                    snapshot.data!.data() as Map<String, dynamic>;
-                if (sabaqData.containsKey('selectedSabaq')) {
-                  selectedPara = sabaqData['selectedSabaq']['para'];
-                  selectedStartSurah = sabaqData['selectedSabaq']['fromSurah'];
-                  selectedEndSurah = sabaqData['selectedSabaq']['toSurah'];
-                  selectedStartVerse = sabaqData['selectedSabaq']['fromAyah'];
-                  selectedLastVerse = sabaqData['selectedSabaq']['toAyah'];
-
-                  // Generate Surah List
-                  data = quran.getSurahAndVersesFromJuz(
-                      paraNames.indexOf(selectedPara!) + 1);
-                  List keys = data!.keys.toList();
-
-                  surahNames = data!.keys.map((key) {
-                    return quran.getSurahNameArabic(key);
-                  }).toList();
-
-                  int indexStart = surahNames!.indexOf(selectedStartSurah!);
-                  int indexEnd = surahNames!.indexOf(selectedEndSurah!);
-
-                  verseStart = data![keys[indexStart]];
-                  verseEnd = data![keys[indexEnd]];
-
-                  versePrintStart = List.generate(
-                      verseStart![1] - verseStart![0] + 1,
-                      (index) => verseStart![0]! + index);
-
-                  versePrintEnd = List.generate(verseEnd![1] - verseEnd![0] + 1,
-                      (index) => verseEnd![0]! + index);
-                } else {
-                  defaultValues();
-                }
-              }
-              return Column(
-                children: [
-                  if (lang == 'en') ...[
-                    const Text(
-                      'Parah',
-                    ),
-                  ] else ...[
-                    const Text("پارہ")
-                  ],
-                  IgnorePointer(
-                    ignoring: !widget.isAdmin!,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(defPadding / 3),
-                          border: Border.all(color: Colors.grey)),
-                      child: DropdownButton(
-                        hint: AppText(text: "Parah"),
+      selectedPara == null
+          ? const CircularProgressIndicator()
+          : Column(
+              children: [
+                if (lang == 'en') ...[
+                  const Text(
+                    'Parah',
+                  ),
+                ] else ...[
+                  const Text("پارہ")
+                ],
+                IgnorePointer(
+                  ignoring: !widget.isAdmin!,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
+                    decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(defPadding / 3),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        value: selectedPara,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: paraNames.map((String item) {
-                          return DropdownMenuItem(
-                            value: item,
-                            // Assign a unique value for each item
-                            child: Text(item),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedPara =
-                                newValue as String; // Cast newValue to String
+                        border: Border.all(color: Colors.grey)),
+                    child: DropdownButton(
+                      hint: AppText(text: "Parah"),
+                      borderRadius: BorderRadius.circular(defPadding / 3),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      value: selectedPara,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: paraNames.map((String item) {
+                        return DropdownMenuItem(
+                          value: item,
+                          // Assign a unique value for each item
+                          child: Text(item),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedPara =
+                              newValue as String; // Cast newValue to String
 
-                            data = quran.getSurahAndVersesFromJuz(
-                                paraNames.indexOf(selectedPara!) + 1);
-                            List keys = data!.keys.toList();
+                          data = quran.getSurahAndVersesFromJuz(
+                              paraNames.indexOf(selectedPara!) + 1);
+                          List keys = data!.keys.toList();
 
-                            surahNames = data!.keys.map((key) {
-                              return quran.getSurahNameArabic(key);
-                            }).toList();
+                          surahNames = data!.keys.map((key) {
+                            return quran.getSurahNameArabic(key);
+                          }).toList();
 
-                            selectedStartSurah = surahNames!.first;
-                            selectedEndSurah = surahNames!.last;
+                          selectedStartSurah = surahNames!.first;
+                          selectedEndSurah = surahNames!.last;
 
-                            int indexStart =
-                                surahNames!.indexOf(selectedStartSurah!);
-                            int indexEnd =
-                                surahNames!.indexOf(selectedEndSurah!);
+                          int indexStart =
+                              surahNames!.indexOf(selectedStartSurah!);
+                          int indexEnd = surahNames!.indexOf(selectedEndSurah!);
 
-                            verseStart = data![keys[indexStart]];
-                            verseEnd = data![keys[indexEnd]];
+                          verseStart = data![keys[indexStart]];
+                          verseEnd = data![keys[indexEnd]];
 
-                            selectedStartVerse = verseStart![0];
-                            selectedLastVerse = verseEnd![0];
+                          selectedStartVerse = verseStart![0];
+                          selectedLastVerse = verseEnd![0];
 
-                            versePrintStart = List.generate(
-                                verseStart![1] - verseStart![0] + 1,
-                                (index) => verseStart![0]! + index);
+                          versePrintStart = List.generate(
+                              verseStart![1] - verseStart![0] + 1,
+                              (index) => verseStart![0]! + index);
 
-                            versePrintEnd = List.generate(
-                                verseEnd![1] - verseEnd![0] + 1,
-                                (index) => verseEnd![0]! + index);
+                          versePrintEnd = List.generate(
+                              verseEnd![1] - verseEnd![0] + 1,
+                              (index) => verseEnd![0]! + index);
 
-                            // verseNumbers = data![keys[index]];
+                          // verseNumbers = data![keys[index]];
 
-                            // versePrint = List.generate(
-                            //     verseNumbers![1] - verseNumbers![0] + 1,
-                            //     (index) => verseNumbers![0]! + index);
-                          });
-                        },
+                          // versePrint = List.generate(
+                          //     verseNumbers![1] - verseNumbers![0] + 1,
+                          //     (index) => verseNumbers![0]! + index);
+                        });
+                      },
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: defPadding,
+                ),
+                lang == "en"
+                    ? const Text(
+                        "From Surat",
+                      )
+                    : const Text(
+                        "سورت سے",
                       ),
-                    ),
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(defPadding / 3),
+                        border: Border.all(color: Colors.grey)),
+                    child: DropdownButton(
+                      hint: AppText(text: "From Surah"),
+                      borderRadius: BorderRadius.circular(defPadding),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      value: selectedStartSurah,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: surahNames!.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedStartSurah = newValue as String;
+
+                          List keys = data!.keys.toList();
+                          if (surahNames!.indexOf(selectedStartSurah!) >
+                              surahNames!.indexOf(selectedEndSurah!)) {
+                            selectedEndSurah = selectedStartSurah;
+                          }
+
+                          int indexStart =
+                              surahNames!.indexOf(selectedStartSurah!);
+                          int indexEnd = surahNames!.indexOf(selectedEndSurah!);
+
+                          verseStart = data![keys[indexStart]];
+                          verseEnd = data![keys[indexEnd]];
+
+                          selectedStartVerse = verseStart![0];
+                          selectedLastVerse = verseEnd![0];
+
+                          versePrintStart = List.generate(
+                              verseStart![1] - verseStart![0] + 1,
+                              (index) => verseStart![0]! + index);
+
+                          versePrintEnd = List.generate(
+                              verseEnd![1] - verseEnd![0] + 1,
+                              (index) => verseEnd![0]! + index);
+                        });
+                      },
+                    )),
+                SizedBox(
+                  height: defPadding,
+                ),
+                if (lang == 'en') ...[
+                  const Text(
+                    'To Surat',
                   ),
-                  SizedBox(
-                    height: defPadding,
+                ] else ...[
+                  const Text("سورت تک")
+                ],
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(defPadding / 3),
+                        border: Border.all(color: Colors.grey)),
+                    child: DropdownButton(
+                      hint: AppText(text: "To Surah"),
+                      borderRadius: BorderRadius.circular(defPadding),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      value: selectedEndSurah,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: surahNames!.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(value),
+                        );
+                      }).toList(),
+                      onChanged: (newValue) {
+                        setState(() {
+                          selectedEndSurah = newValue as String;
+
+                          List keys = data!.keys.toList();
+                          if (surahNames!.indexOf(selectedEndSurah!) <
+                              surahNames!.indexOf(selectedStartSurah!)) {
+                            selectedStartSurah = selectedEndSurah;
+                          }
+
+                          int indexStart =
+                              surahNames!.indexOf(selectedStartSurah!);
+                          int indexEnd = surahNames!.indexOf(selectedEndSurah!);
+
+                          verseStart = data![keys[indexStart]];
+                          verseEnd = data![keys[indexEnd]];
+
+                          selectedStartVerse = verseStart![0];
+                          selectedLastVerse = verseEnd![0];
+
+                          versePrintStart = List.generate(
+                              verseStart![1] - verseStart![0] + 1,
+                              (index) => verseStart![0]! + index);
+
+                          versePrintEnd = List.generate(
+                              verseEnd![1] - verseEnd![0] + 1,
+                              (index) => verseEnd![0]! + index);
+                        });
+                      },
+                    )),
+                SizedBox(
+                  height: defPadding,
+                ),
+                if (lang == 'en') ...[
+                  const Text(
+                    'From Ayat',
                   ),
-                  lang == "en"
-                      ? const Text(
-                          "From Surat",
-                        )
-                      : const Text(
-                          "سورت سے",
-                        ),
-                  Container(
-                      padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(defPadding / 3),
-                          border: Border.all(color: Colors.grey)),
-                      child: DropdownButton(
-                        hint: AppText(text: "From Surah"),
-                        borderRadius: BorderRadius.circular(defPadding),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        value: selectedStartSurah,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: surahNames!.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedStartSurah = newValue as String;
-
-                            List keys = data!.keys.toList();
-                            if (surahNames!.indexOf(selectedStartSurah!) >
-                                surahNames!.indexOf(selectedEndSurah!)) {
-                              selectedEndSurah = selectedStartSurah;
-                            }
-
-                            int indexStart =
-                                surahNames!.indexOf(selectedStartSurah!);
-                            int indexEnd =
-                                surahNames!.indexOf(selectedEndSurah!);
-
-                            verseStart = data![keys[indexStart]];
-                            verseEnd = data![keys[indexEnd]];
-
-                            selectedStartVerse = verseStart![0];
-                            selectedLastVerse = verseEnd![0];
-
-                            versePrintStart = List.generate(
-                                verseStart![1] - verseStart![0] + 1,
-                                (index) => verseStart![0]! + index);
-
-                            versePrintEnd = List.generate(
-                                verseEnd![1] - verseEnd![0] + 1,
-                                (index) => verseEnd![0]! + index);
-                          });
-                        },
-                      )),
-                  SizedBox(
-                    height: defPadding,
+                ] else ...[
+                  const Text("آیت سے")
+                ],
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(defPadding / 3),
+                        border: Border.all(color: Colors.grey)),
+                    child: DropdownButton(
+                      hint: AppText(text: "From Ayah"),
+                      borderRadius: BorderRadius.circular(defPadding),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      value: selectedStartVerse,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: versePrintStart!
+                          .map((x) => DropdownMenuItem(
+                              value: x,
+                              child: Text(
+                                '$x',
+                              )))
+                          .toList(),
+                      onChanged: (x) {
+                        setState(() {
+                          selectedStartVerse = x as int;
+                        });
+                      },
+                    )),
+                SizedBox(
+                  height: defPadding,
+                ),
+                if (lang == 'en') ...[
+                  const Text(
+                    'To Ayat',
                   ),
-                  if (lang == 'en') ...[
-                    const Text(
-                      'To Surat',
-                    ),
-                  ] else ...[
-                    const Text("سورت تک")
-                  ],
-                  Container(
-                      padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(defPadding / 3),
-                          border: Border.all(color: Colors.grey)),
-                      child: DropdownButton(
-                        hint: AppText(text: "To Surah"),
-                        borderRadius: BorderRadius.circular(defPadding),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        value: selectedEndSurah,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: surahNames!.map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (newValue) {
-                          setState(() {
-                            selectedEndSurah = newValue as String;
-
-                            List keys = data!.keys.toList();
-                            if (surahNames!.indexOf(selectedEndSurah!) <
-                                surahNames!.indexOf(selectedStartSurah!)) {
-                              selectedStartSurah = selectedEndSurah;
-                            }
-
-                            int indexStart =
-                                surahNames!.indexOf(selectedStartSurah!);
-                            int indexEnd =
-                                surahNames!.indexOf(selectedEndSurah!);
-
-                            verseStart = data![keys[indexStart]];
-                            verseEnd = data![keys[indexEnd]];
-
-                            selectedStartVerse = verseStart![0];
-                            selectedLastVerse = verseEnd![0];
-
-                            versePrintStart = List.generate(
-                                verseStart![1] - verseStart![0] + 1,
-                                (index) => verseStart![0]! + index);
-
-                            versePrintEnd = List.generate(
-                                verseEnd![1] - verseEnd![0] + 1,
-                                (index) => verseEnd![0]! + index);
-                          });
-                        },
-                      )),
-                  SizedBox(
-                    height: defPadding,
-                  ),
-                  if (lang == 'en') ...[
-                    const Text(
-                      'From Ayat',
-                    ),
-                  ] else ...[
-                    const Text("آیت سے")
-                  ],
-                  Container(
-                      padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(defPadding / 3),
-                          border: Border.all(color: Colors.grey)),
-                      child: DropdownButton(
-                        hint: AppText(text: "From Ayah"),
-                        borderRadius: BorderRadius.circular(defPadding),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        value: selectedStartVerse,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: versePrintStart!
-                            .map((x) => DropdownMenuItem(
-                                value: x,
-                                child: Text(
-                                  '$x',
-                                )))
-                            .toList(),
-                        onChanged: (x) {
-                          setState(() {
-                            selectedStartVerse = x as int;
-                          });
-                        },
-                      )),
-                  SizedBox(
-                    height: defPadding,
-                  ),
-                  if (lang == 'en') ...[
-                    const Text(
-                      'To Ayat',
-                    ),
-                  ] else ...[
-                    const Text("آیت تک")
-                  ],
-                  Container(
-                      padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(defPadding / 3),
-                          border: Border.all(color: Colors.grey)),
-                      child: DropdownButton(
-                        hint: const Text('To Ayah'),
-                        borderRadius: BorderRadius.circular(defPadding),
-                        isExpanded: true,
-                        underline: const SizedBox(),
-                        value: selectedLastVerse,
-                        icon: const Icon(Icons.keyboard_arrow_down),
-                        items: versePrintEnd!
-                            .map((x) => DropdownMenuItem(
-                                value: x,
-                                child: Text(
-                                  '$x',
-                                )))
-                            .toList(),
-                        onChanged: (x) {
-                          setState(() {
-                            selectedLastVerse = x as int;
-                          });
-                        },
-                      )),
-                  SizedBox(
-                    height: defPadding,
-                  ),
+                ] else ...[
+                  const Text("آیت تک")
+                ],
+                Container(
+                    padding: EdgeInsets.symmetric(horizontal: defPadding / 2),
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(defPadding / 3),
+                        border: Border.all(color: Colors.grey)),
+                    child: DropdownButton(
+                      hint: const Text('To Ayah'),
+                      borderRadius: BorderRadius.circular(defPadding),
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      value: selectedLastVerse,
+                      icon: const Icon(Icons.keyboard_arrow_down),
+                      items: versePrintEnd!
+                          .map((x) => DropdownMenuItem(
+                              value: x,
+                              child: Text(
+                                '$x',
+                              )))
+                          .toList(),
+                      onChanged: (x) {
+                        setState(() {
+                          selectedLastVerse = x as int;
+                        });
+                      },
+                    )),
+                SizedBox(
+                  height: defPadding,
+                ),
+                SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        // Set text color to white
+                      ),
+                      onPressed: () {
+                        markSabaqAttendance();
+                      },
+                      child: lang == 'en'
+                          ? const Text('Mark Sabaq Attendance')
+                          : const Text('سبق حاضری لگائیں')),
+                ),
+                SizedBox(
+                  height: defPadding / 2,
+                ),
+                if (widget.isAdmin!) ...[
                   SizedBox(
                     height: 50,
+                    width: double.infinity,
                     child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
+                          backgroundColor: primaryColor,
                           // Set text color to white
                         ),
                         onPressed: () {
-                          markSabaqAttendance();
+                          FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(widget.studentID)
+                              .set({
+                            "selectedSabaq": {
+                              "para": selectedPara,
+                              "fromSurah": selectedStartSurah,
+                              "toSurah": selectedEndSurah,
+                              "fromAyah": selectedStartVerse,
+                              "toAyah": selectedLastVerse
+                            },
+                          }, SetOptions(merge: true)).then((value) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Parah Saved Successfully!')));
+                          }).catchError((error) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Error!')));
+                          });
                         },
                         child: lang == 'en'
-                            ? const Text('Mark Sabaq Attendance')
-                            : const Text('سبق حاضری لگائیں')),
-                  ),
-                  SizedBox(
-                    height: defPadding,
-                  ),
-                  if (widget.isAdmin!) ...[
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            // Set text color to white
-                          ),
-                          onPressed: () {
-                            FirebaseFirestore.instance
-                                .collection('users')
-                                .doc(widget.studentID)
-                                .set({
-                              "selectedSabaq": {
-                                "para": selectedPara,
-                                "fromSurah": selectedStartSurah,
-                                "toSurah": selectedEndSurah,
-                                "fromAyah": selectedStartVerse,
-                                "toAyah": selectedLastVerse
-                              },
-                            }, SetOptions(merge: true)).then((value) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Parah Saved Successfully!')));
-                            }).catchError((error) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Error!')));
-                            });
-                          },
-                          child: lang == 'en'
-                              ? const Text('Save Sabaq Parah')
-                              : const Text('سبق پارہ لگائیں')),
-                    )
-                  ]
-                ],
-              );
-            } else if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: Text("Loading"),
-              );
-            } else if (snapshot.data == null) {
-              return const Center(child: Text("Student Doesnt Exist"));
-            } else {
-              return const CircularProgressIndicator();
-            }
-          }))
+                            ? const Text('Save Sabaq Parah')
+                            : const Text('سبق پارہ لگائیں')),
+                  )
+                ]
+              ],
+            )
     ];
   }
 
@@ -1565,6 +1528,13 @@ class _StaffStudentAttendanceState extends State<StaffStudentAttendance> {
     });
 
     FirebaseFirestore.instance.collection('users').doc(widget.studentID).set({
+      "selectedSabqi": {
+        'para': selectedPara,
+        "fromSurah": selectedStartSurah,
+        "toSurah": selectedEndSurah,
+        "fromAyah": selectedStartVerse,
+        "toAyah": selectedLastVerse
+      },
       "selectedSabaq": {
         'para': selectedPara,
         "fromSurah": selectedStartSurah,

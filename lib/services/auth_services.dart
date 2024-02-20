@@ -26,12 +26,14 @@ class AuthServices {
         if (data["type"] == "0") {
           SharedPreferences prefs = await SharedPreferences.getInstance();
           prefs.setString("currentUserId", value.user!.uid);
-          Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => AdminHomeNavigation(
-                        madrisaName: data["madrasah_name"],
-                      )));
+          if (context.mounted) {
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => AdminHomeNavigation(
+                          madrisaName: data["madrasah_name"],
+                        )));
+          }
         }
         if (data["type"] == "1") {
           FirebaseFirestore.instance
@@ -244,11 +246,10 @@ class AuthServices {
           // Access the data from the documentSnapshot
           var userData = documentSnapshot.data();
 
-          // Assuming 'type' is a field in your Firestore document
           if (userData!["type"] == "0") {
             // Accessing SharedPreferences
 
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) =>

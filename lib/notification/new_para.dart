@@ -19,18 +19,22 @@ class _NewParaState extends State<NewPara> {
       appBar: AppBar(
         automaticallyImplyLeading: true,
         backgroundColor: primaryColor,
-        title: Column(
+        title: const Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            AppText(
-              text: "New Para",
-              clr: Colors.white,
-              fontWeight: FontWeight.bold,
+            Text(
+              "New Para",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            AppText(
-              text: "View New Para Details Here",
-              clr: Colors.white60,
-              size: 11,
+            Text(
+              "View New Para Details Here",
+              style: TextStyle(
+                color: Colors.white60,
+                fontSize: 11,
+              ),
             ),
           ],
         ),
@@ -66,7 +70,8 @@ class _NewParaState extends State<NewPara> {
                                   border: Border.all(
                                     color: Colors.grey,
                                   ),
-                                  borderRadius: BorderRadius.circular(defPadding),
+                                  borderRadius:
+                                      BorderRadius.circular(defPadding),
                                 ),
                                 child: Row(
                                   children: [
@@ -135,13 +140,10 @@ class _NewParaState extends State<NewPara> {
                                                                         .docs[
                                                                             index]
                                                                         .id)
-                                                                    .set(
-                                                                        {
-                                                                      "notify":false
-                                                                    },
-                                                                        SetOptions(
-                                                                            merge:
-                                                                                true));
+                                                                    .set({
+                                                                  "notify":
+                                                                      false
+                                                                }, SetOptions(merge: true));
                                                               },
                                                               textColor:
                                                                   Colors.white,
@@ -169,13 +171,10 @@ class _NewParaState extends State<NewPara> {
                                                                         .docs[
                                                                             index]
                                                                         .id)
-                                                                    .set(
-                                                                        {
-                                                                          "notify":false
-                                                                    },
-                                                                        SetOptions(
-                                                                            merge:
-                                                                                true));
+                                                                    .set({
+                                                                  "notify":
+                                                                      false
+                                                                }, SetOptions(merge: true));
                                                               },
                                                               textColor:
                                                                   Colors.white,
@@ -190,7 +189,8 @@ class _NewParaState extends State<NewPara> {
                                             );
                                           } else {
                                             return const Center(
-                                              child: CircularProgressIndicator(),
+                                              child:
+                                                  CircularProgressIndicator(),
                                             );
                                           }
                                         }),
